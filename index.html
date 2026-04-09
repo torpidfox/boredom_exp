@@ -3,15 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Circle Rotation Task</title>
+  <title>Задание на внимание</title>
 
-  <!-- jsPsych 7 -->
   <script src="https://unpkg.com/jspsych@7.3.4"></script>
   <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.3"></script>
   <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
   <link rel="stylesheet" href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css">
-
-  <!-- DataPipe plugin (saves data to OSF) -->
   <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe@0.4"></script>
 
   <style>
@@ -31,80 +28,112 @@
       text-align: center;
       padding: 40px 20px;
     }
-    .instructions h1 { font-size: 36px; margin-bottom: 24px; font-weight: 500; }
+    .instructions h1 { font-size: 32px; margin-bottom: 24px; font-weight: 500; }
     .instructions p { margin-bottom: 16px; }
     .instructions .subtle { font-size: 14px; color: #999; font-family: 'DM Mono', monospace; }
 
+    /* Task */
     .task-wrapper {
       display: flex; flex-direction: column; align-items: center;
-      gap: 20px; padding: 20px;
+      gap: 16px; padding: 16px 20px;
       user-select: none; -webkit-user-select: none;
     }
-    .task-header { text-align: center; }
-    .task-title {
-      font-family: 'Fraunces', serif; font-size: 32px; font-weight: 300;
-      color: #2a2a2a; margin: 0 0 4px 0;
-    }
-    .task-subtitle { font-size: 13px; color: #999; margin: 0; }
 
-    .progress-track {
-      width: 100%; max-width: 360px; height: 3px;
+    .task-instruction {
+      font-family: 'Fraunces', serif;
+      font-size: 14px;
+      font-weight: 300;
+      color: #888;
+      text-align: center;
+      max-width: 360px;
+      line-height: 1.5;
+    }
+
+    /* Countdown timer */
+    .task-timer-bar {
+      width: 100%; max-width: 360px; height: 4px;
       background: #eee; border-radius: 2px; overflow: hidden;
     }
-    .progress-fill {
-      height: 100%; background: #95B8A3;
-      border-radius: 2px; transition: width 0.4s ease;
+    .task-timer-fill {
+      height: 100%; background: #4A7AB5;
+      border-radius: 2px; transition: width 1s linear;
+    }
+    .task-timer-text {
+      font-size: 16px;
+      font-family: 'DM Mono', monospace;
+      color: #4A7AB5;
+      font-weight: 400;
     }
 
+    /* Grid */
     .circle-grid {
       display: grid; grid-template-columns: repeat(4, 1fr);
       gap: 16px; width: 100%; max-width: 360px;
     }
-    .circle-cell { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .circle-cell {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
 
     .circle-btn {
       position: relative; width: 72px; height: 72px;
-      border: none; background: none; cursor: pointer; padding: 0;
+      border: none; background: none; padding: 0;
       -webkit-tap-highlight-color: transparent; outline: none;
+      cursor: default;
+      transition: transform 0.15s ease;
     }
-    .circle-btn:disabled { cursor: default; opacity: 0.45; }
+    .circle-btn.active { cursor: pointer; }
+    .circle-btn.active:active { transform: scale(0.95); }
 
-    .circle-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-
-    .circle-inner {
-      position: absolute; top: 8px; left: 8px; width: 56px; height: 56px;
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3);
-      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* The disk */
+    .disk {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 4px auto 0;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  box-shadow 0.3s ease, background 0.3s ease;
     }
-    .circle-notch {
-      position: absolute; top: 3px; left: 50%; transform: translateX(-50%);
-      width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.7);
-    }
-    .circle-icon { font-size: 20px; color: rgba(255,255,255,0.85); }
-    .circle-label { font-size: 11px; color: #aaa; }
 
-    .task-status {
-      font-family: 'Fraunces', serif; font-size: 15px; font-weight: 300;
-      color: #666; text-align: center; min-height: 22px;
+    /* Inactive (dim) */
+    .disk.inactive {
+      background: #B0C4DE;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
-    .task-timer { font-size: 12px; color: #bbb; text-align: center; }
 
-    .finish-btn {
-      margin-top: 8px; padding: 10px 28px;
-      font-family: 'DM Mono', monospace; font-size: 13px;
-      color: #999; background: none; border: 1px solid #ddd;
-      border-radius: 6px; cursor: pointer; transition: all 0.2s;
+    /* Active (highlighted) */
+    .disk.active {
+      background: #3B7DD8;
+      box-shadow: 0 0 0 4px rgba(59,125,216,0.25), 0 4px 16px rgba(59,125,216,0.3);
     }
-    .finish-btn:hover { color: #555; border-color: #aaa; }
 
-    @keyframes popIn {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
+    /* Done */
+    .disk.done {
+      background: #A8B8C8;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      opacity: 0.5;
     }
-    .celebrating .circle-inner { animation: popIn 0.5s ease; }
 
+    /* Arrow inside the disk */
+    .arrow-svg {
+      width: 28px; height: 28px;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .arrow-svg path {
+      fill: rgba(255,255,255,0.9);
+    }
+    .disk.inactive .arrow-svg path { fill: rgba(255,255,255,0.5); }
+    .disk.done .arrow-svg path { fill: rgba(255,255,255,0.4); }
+
+    .circle-label { font-size: 11px; color: #aaa; height: 14px; }
+
+    /* Round counter */
+    .round-info {
+      font-size: 13px;
+      color: #999;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* End screen */
     .end-screen {
       font-family: 'Fraunces', serif; text-align: center; padding: 40px 20px;
     }
@@ -114,6 +143,13 @@
       color: #777; margin-bottom: 8px;
     }
     .end-screen .stat strong { color: #2a2a2a; font-weight: 400; }
+
+    /* Pulse animation for active disk */
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(59,125,216,0.25), 0 4px 16px rgba(59,125,216,0.3); }
+      50% { box-shadow: 0 0 0 6px rgba(59,125,216,0.15), 0 4px 20px rgba(59,125,216,0.25); }
+    }
+    .disk.active { animation: pulse 2s ease-in-out infinite; }
   </style>
 </head>
 <body></body>
@@ -123,29 +159,27 @@
    CONFIG
    ═══════════════════════════════════════════════════════════════ */
 
-var DATAPIPE_EXPERIMENT_ID = "9ba4v";  // Your DataPipe experiment ID
-var MIN_ROUNDS = 1;
-var TIME_LIMIT_MS = 0;
+var DATAPIPE_EXPERIMENT_ID = "9ba4v";
+var TASK_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
 /* ═══════════════════════════════════════════════════════════════
-   CUSTOM PLUGIN: circle-rotation
+   CUSTOM PLUGIN: circle-rotation (sequential version)
    ═══════════════════════════════════════════════════════════════ */
 
 var jsPsychCircleRotation = (function () {
 
-  var COLORS = [
-    "#D4726A", "#E8A87C", "#95B8A3", "#6B8F7E",
-    "#B8860B", "#A0522D", "#7B9EBE", "#C4A882"
-  ];
-  var ICONS = ["◐", "◑", "◒", "◓", "◔", "◕", "◖", "◗"];
   var TOTAL_CIRCLES = 8;
-  var CLICKS_PER_CIRCLE = 4;
+  var CLICKS_PER_CIRCLE = 4; // 4 × 90° = 360°
+
+  // SVG arrow pointing up
+  var ARROW_SVG = '<svg class="arrow-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>' +
+    '</svg>';
 
   var info = {
     name: "circle-rotation",
     parameters: {
-      min_rounds: { type: 1, default: 1 },
-      time_limit_ms: { type: 1, default: 0 }
+      task_duration_ms: { type: 1, default: 300000 }
     }
   };
 
@@ -154,130 +188,132 @@ var jsPsychCircleRotation = (function () {
 
     trial(display_element, trial) {
       var self = this;
+
+      // State
       var circles = [];
       for (var i = 0; i < TOTAL_CIRCLES; i++) circles.push(0);
-
+      var activeIndex = 0;        // which disk is currently highlighted
       var roundsCompleted = 0;
-      var celebrating = false;
+      var totalClicks = 0;
       var startTime = performance.now();
       var roundTimestamps = [];
 
       function elapsed() { return performance.now() - startTime; }
+      function remaining() { return Math.max(0, trial.task_duration_ms - elapsed()); }
 
       function formatTime(ms) {
-        var s = Math.floor(ms / 1000);
+        var s = Math.ceil(ms / 1000);
         var m = Math.floor(s / 60);
         var sec = s % 60;
         return m + ":" + (sec < 10 ? "0" : "") + sec;
       }
 
-      function doneCount() {
-        var c = 0;
-        for (var i = 0; i < TOTAL_CIRCLES; i++) {
-          if (circles[i] >= CLICKS_PER_CIRCLE) c++;
-        }
-        return c;
-      }
-
       function render() {
-        var dc = doneCount();
-        var pct = (dc / TOTAL_CIRCLES) * 100;
-        var showFinish = roundsCompleted >= trial.min_rounds;
+        var rem = remaining();
+        var pct = (rem / trial.task_duration_ms) * 100;
 
         var html = '<div class="task-wrapper">';
-        html += '<div class="task-header">' +
-          '<h2 class="task-title">покрути</h2>' +
-          '<p class="task-subtitle">раунд ' + (roundsCompleted + 1) + '</p></div>';
-        html += '<div class="progress-track">' +
-          '<div class="progress-fill" style="width:' + pct + '%"></div></div>';
 
-        html += '<div class="circle-grid' + (celebrating ? ' celebrating' : '') + '">';
+        // Timer
+        html += '<div style="display:flex; align-items:center; gap:12px; width:100%; max-width:360px;">' +
+          '<div class="task-timer-bar"><div class="task-timer-fill" style="width:' + pct + '%"></div></div>' +
+          '<span class="task-timer-text" id="crt-timer">' + formatTime(rem) + '</span></div>';
+
+        // Round counter
+        html += '<p class="round-info">раунд ' + (roundsCompleted + 1) + '</p>';
+
+        // Grid
+        html += '<div class="circle-grid">';
         for (var i = 0; i < TOTAL_CIRCLES; i++) {
           var clicks = circles[i];
           var done = clicks >= CLICKS_PER_CIRCLE;
+          var isActive = (i === activeIndex && !done);
           var rotation = clicks * 90;
-          var progress = clicks / CLICKS_PER_CIRCLE;
-          var dashLen = progress * 264;
+
+          var diskClass = done ? 'disk done' : (isActive ? 'disk active' : 'disk inactive');
+          var btnClass = isActive ? 'circle-btn active' : 'circle-btn';
 
           html += '<div class="circle-cell">' +
-            '<button class="circle-btn" data-index="' + i + '"' +
-            (done || celebrating ? ' disabled' : '') + '>' +
-            '<svg class="circle-ring" viewBox="0 0 100 100">' +
-            '<circle cx="50" cy="50" r="42" fill="none" stroke="#eee" stroke-width="4"/>' +
-            '<circle cx="50" cy="50" r="42" fill="none" stroke="' + COLORS[i] + '"' +
-            ' stroke-width="4" stroke-dasharray="' + dashLen + ' 264"' +
-            ' stroke-linecap="round" transform="rotate(-90 50 50)"' +
-            ' style="transition:stroke-dasharray 0.4s ease"/></svg>' +
-            '<div class="circle-inner" style="background:' + COLORS[i] +
-            '; transform:rotate(' + rotation + 'deg)">' +
-            '<div class="circle-notch"></div>' +
-            '<span class="circle-icon">' + ICONS[i] + '</span></div></button>' +
-            '<span class="circle-label">' + (done ? '✓' : clicks + '/' + CLICKS_PER_CIRCLE) + '</span></div>';
+            '<button class="' + btnClass + '" data-index="' + i + '"' +
+            (!isActive ? ' disabled' : '') + '>' +
+            '<div class="' + diskClass + '">' +
+            '<div style="transform:rotate(' + rotation + 'deg); transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1)">' +
+            ARROW_SVG + '</div>' +
+            '</div></button>' +
+            '<span class="circle-label">' + (done ? '✓' : isActive ? (clicks + '/4') : '') + '</span>' +
+            '</div>';
         }
         html += '</div>';
 
-        var statusText = celebrating ? '✨ ещё раз!'
-          : dc === 0 ? 'нажимай на кружочки'
-          : 'осталось ' + (TOTAL_CIRCLES - dc);
-        html += '<p class="task-status">' + statusText + '</p>';
-        html += '<p class="task-timer" id="crt-timer">' + formatTime(elapsed()) + '</p>';
-
-        if (showFinish) {
-          html += '<button class="finish-btn" id="crt-finish">Завершить</button>';
-        }
         html += '</div>';
         display_element.innerHTML = html;
 
-        var btns = display_element.querySelectorAll('.circle-btn:not([disabled])');
-        for (var j = 0; j < btns.length; j++) {
-          btns[j].addEventListener('click', handleCircleClick);
+        // Attach click handler to active button
+        var activeBtn = display_element.querySelector('.circle-btn.active');
+        if (activeBtn) {
+          activeBtn.addEventListener('click', handleClick);
         }
-        var finishBtn = display_element.querySelector('#crt-finish');
-        if (finishBtn) finishBtn.addEventListener('click', endTask);
       }
 
-      function handleCircleClick(e) {
+      function handleClick(e) {
         var idx = parseInt(e.currentTarget.getAttribute('data-index'));
-        if (circles[idx] >= CLICKS_PER_CIRCLE || celebrating) return;
-        circles[idx]++;
+        if (idx !== activeIndex) return;
 
-        if (doneCount() === TOTAL_CIRCLES) {
-          celebrating = true;
-          roundsCompleted++;
-          roundTimestamps.push(Math.round(elapsed()));
-          render();
-          setTimeout(function () {
+        circles[idx]++;
+        totalClicks++;
+
+        // Check if this disk is done
+        if (circles[idx] >= CLICKS_PER_CIRCLE) {
+          // Move to next disk
+          activeIndex++;
+
+          // Check if all 8 are done → round complete
+          if (activeIndex >= TOTAL_CIRCLES) {
+            roundsCompleted++;
+            roundTimestamps.push(Math.round(elapsed()));
+
+            // Reset for next round
             for (var i = 0; i < TOTAL_CIRCLES; i++) circles[i] = 0;
-            celebrating = false;
-            render();
-          }, 1200);
-        } else {
-          render();
+            activeIndex = 0;
+          }
         }
+
+        render();
       }
 
       function endTask() {
         clearInterval(timerInterval);
-        if (timeLimitTimeout) clearTimeout(timeLimitTimeout);
-        var totalTime = Math.round(elapsed());
 
+        var totalTime = Math.round(elapsed());
         self.jsPsych.finishTrial({
           rounds_completed: roundsCompleted,
+          total_clicks: totalClicks,
           total_time_ms: totalTime,
-          total_time_formatted: formatTime(totalTime),
+          total_time_formatted: formatTime(0), // shows 0:00 since time ran out
+          actual_duration_formatted: formatTime(totalTime * 1000).replace(/^0:/, ''),
           round_timestamps_ms: JSON.stringify(roundTimestamps)
         });
       }
 
+      // Update timer every second
       var timerInterval = setInterval(function () {
+        var rem = remaining();
         var el = display_element.querySelector('#crt-timer');
-        if (el) el.textContent = formatTime(elapsed());
+        if (el) el.textContent = formatTime(rem);
+
+        // Update timer bar
+        var bar = display_element.querySelector('.task-timer-fill');
+        if (bar) bar.style.width = ((rem / trial.task_duration_ms) * 100) + '%';
+
+        if (rem <= 0) {
+          endTask();
+        }
       }, 1000);
 
-      var timeLimitTimeout = null;
-      if (trial.time_limit_ms > 0) {
-        timeLimitTimeout = setTimeout(endTask, trial.time_limit_ms);
-      }
+      // Hard stop at exact duration
+      setTimeout(function () {
+        endTask();
+      }, trial.task_duration_ms + 500);
 
       render();
     }
@@ -293,32 +329,28 @@ var jsPsychCircleRotation = (function () {
    ═══════════════════════════════════════════════════════════════ */
 
 var jsPsych = initJsPsych();
-
-// Unique filename per participant → each gets their own CSV on OSF
 var subject_id = jsPsych.randomization.randomID(10);
 var filename = subject_id + ".csv";
 
-/* ── 1. Welcome ── */
+/* ── 1. Instructions ── */
 var welcome = {
   type: jsPsychHtmlButtonResponse,
   stimulus:
     '<div class="instructions">' +
-    '<h1>Добро пожаловать</h1>' +
-    '<p>В этом задании вы увидите 8 кружочков.</p>' +
-    '<p>Нажимайте на каждый кружочек, чтобы повернуть его на 90°.<br>' +
-    'Ваша задача — повернуть все кружочки на полный оборот (360°).</p>' +
-    '<p>После этого задание повторится.</p>' +
-    '<p>Когда захотите закончить, нажмите кнопку «Завершить».</p>' +
+    '<h1>Задание на внимание</h1>' +
+    '<p>Перед вами восемь синих дисков со стрелками.</p>' +
+    '<p>Кликайте на подсвеченный диск. Каждый клик поворачивает стрелку на четверть оборота. ' +
+    'После полного оборота (4 клика) подсветка переходит к следующему диску.</p>' +
+    '<p>Работайте как можно быстрее. Задание длится 5 минут.</p>' +
     '<p class="subtle">Нажмите «Начать», когда будете готовы.</p>' +
     '</div>',
   choices: ['Начать']
 };
 
-/* ── 2. Circle rotation task ── */
+/* ── 2. Task (5 min) ── */
 var circleTask = {
   type: jsPsychCircleRotation,
-  min_rounds: MIN_ROUNDS,
-  time_limit_ms: TIME_LIMIT_MS
+  task_duration_ms: TASK_DURATION_MS
 };
 
 /* ── 3. Save data to OSF via DataPipe ── */
@@ -330,15 +362,15 @@ var save_data = {
   data_string: function () { return jsPsych.data.get().csv(); }
 };
 
-/* ── 4. Thank you screen ── */
+/* ── 4. End screen ── */
 var debrief = {
   type: jsPsychHtmlButtonResponse,
   stimulus: function () {
     var data = jsPsych.data.get().filter({ trial_type: 'circle-rotation' }).values()[0];
     return '<div class="end-screen">' +
-      '<h1>Готово!</h1>' +
+      '<h1>Время вышло!</h1>' +
       '<p class="stat">Раундов завершено: <strong>' + data.rounds_completed + '</strong></p>' +
-      '<p class="stat">Общее время: <strong>' + data.total_time_formatted + '</strong></p>' +
+      '<p class="stat">Всего кликов: <strong>' + data.total_clicks + '</strong></p>' +
       '<p class="stat" style="margin-top:24px; color:#bbb;">Спасибо за участие.</p>' +
       '</div>';
   },
