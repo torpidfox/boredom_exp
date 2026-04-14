@@ -3,53 +3,92 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Задание на внимание</title>
+  <title>Исследование</title>
 
+  <!-- jsPsych 7 + plugins -->
   <script src="https://unpkg.com/jspsych@7.3.4"></script>
   <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.1.3"></script>
   <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-likert@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-multi-choice@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-text@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.0.3"></script>
   <link rel="stylesheet" href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css">
+
+  <!-- DataPipe -->
   <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe@0.4"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Fraunces:opsz,wght@9..144,300;9..144,500&display=swap');
 
+    body { background: #fafafa; }
+
     .jspsych-content {
       font-family: 'DM Mono', monospace;
-      max-width: 600px;
+      max-width: 700px;
     }
 
-    .instructions {
+    /* Shared page styles */
+    .page {
       font-family: 'Fraunces', serif;
       font-weight: 300;
       color: #2a2a2a;
-      font-size: 20px;
-      line-height: 1.6;
-      text-align: center;
-      padding: 40px 20px;
+      font-size: 18px;
+      line-height: 1.7;
+      text-align: left;
+      padding: 30px 20px;
+      max-width: 620px;
+      margin: 0 auto;
     }
-    .instructions h1 { font-size: 32px; margin-bottom: 24px; font-weight: 500; }
-    .instructions p { margin-bottom: 16px; }
-    .instructions .subtle { font-size: 14px; color: #999; font-family: 'DM Mono', monospace; }
+    .page h1 { font-size: 28px; font-weight: 500; margin-bottom: 20px; text-align: center; }
+    .page p { margin-bottom: 14px; }
+    .page ul { margin: 10px 0 14px 20px; }
+    .page li { margin-bottom: 6px; }
+    .page .note { font-size: 14px; color: #888; font-family: 'DM Mono', monospace; }
 
-    /* Task */
+    /* Survey styling overrides */
+    .jspsych-survey-likert-statement { 
+      font-size: 16px !important; 
+      margin-bottom: 4px !important;
+      font-family: 'Fraunces', serif !important;
+    }
+    .jspsych-survey-likert-opts { 
+      font-size: 13px !important; 
+      font-family: 'DM Mono', monospace !important;
+    }
+    .jspsych-survey-likert-opt-label { font-size: 12px !important; }
+
+    .jspsych-survey-multi-choice-question { 
+      font-size: 16px !important; 
+      font-family: 'Fraunces', serif !important;
+    }
+    .jspsych-survey-multi-choice-option { 
+      font-size: 14px !important; 
+      font-family: 'DM Mono', monospace !important;
+    }
+
+    .jspsych-survey-text .jspsych-survey-text-question p {
+      font-family: 'Fraunces', serif !important;
+      font-size: 16px !important;
+    }
+
+    #jspsych-survey-html-form input[type="number"] {
+      width: 80px; padding: 6px 10px; font-size: 16px;
+      border: 1px solid #ccc; border-radius: 4px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .jspsych-btn {
+      font-family: 'DM Mono', monospace !important;
+      font-size: 14px !important;
+    }
+
+    /* Task styles */
     .task-wrapper {
       display: flex; flex-direction: column; align-items: center;
       gap: 16px; padding: 16px 20px;
       user-select: none; -webkit-user-select: none;
     }
-
-    .task-instruction {
-      font-family: 'Fraunces', serif;
-      font-size: 14px;
-      font-weight: 300;
-      color: #888;
-      text-align: center;
-      max-width: 360px;
-      line-height: 1.5;
-    }
-
-    /* Countdown timer */
     .task-timer-bar {
       width: 100%; max-width: 360px; height: 4px;
       background: #eee; border-radius: 2px; overflow: hidden;
@@ -59,97 +98,50 @@
       border-radius: 2px; transition: width 1s linear;
     }
     .task-timer-text {
-      font-size: 16px;
-      font-family: 'DM Mono', monospace;
-      color: #4A7AB5;
-      font-weight: 400;
+      font-size: 16px; font-family: 'DM Mono', monospace;
+      color: #4A7AB5; font-weight: 400;
     }
-
-    /* Grid */
     .circle-grid {
       display: grid; grid-template-columns: repeat(4, 1fr);
       gap: 16px; width: 100%; max-width: 360px;
     }
-    .circle-cell {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-    }
-
+    .circle-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .circle-btn {
       position: relative; width: 72px; height: 72px;
       border: none; background: none; padding: 0;
-      -webkit-tap-highlight-color: transparent; outline: none;
-      cursor: default;
+      -webkit-tap-highlight-color: transparent; outline: none; cursor: default;
       transition: transform 0.15s ease;
     }
     .circle-btn.active { cursor: pointer; }
     .circle-btn.active:active { transform: scale(0.95); }
-
-    /* The disk */
     .disk {
-      width: 64px; height: 64px;
-      border-radius: 50%;
+      width: 64px; height: 64px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       margin: 4px auto 0;
-      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1),
                   box-shadow 0.3s ease, background 0.3s ease;
     }
-
-    /* Inactive (dim) */
-    .disk.inactive {
-      background: #B0C4DE;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    }
-
-    /* Active (highlighted) */
-    .disk.active {
-      background: #3B7DD8;
-      box-shadow: 0 0 0 4px rgba(59,125,216,0.25), 0 4px 16px rgba(59,125,216,0.3);
-    }
-
-    /* Done */
-    .disk.done {
-      background: #A8B8C8;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      opacity: 0.5;
-    }
-
-    /* Arrow inside the disk */
-    .arrow-svg {
-      width: 28px; height: 28px;
-      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .arrow-svg path {
-      fill: rgba(255,255,255,0.9);
-    }
+    .disk.inactive { background: #B0C4DE; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+    .disk.active { background: #3B7DD8; box-shadow: 0 0 0 4px rgba(59,125,216,0.25), 0 4px 16px rgba(59,125,216,0.3); }
+    .disk.done { background: #A8B8C8; box-shadow: 0 1px 4px rgba(0,0,0,0.06); opacity: 0.5; }
+    .arrow-svg { width: 28px; height: 28px; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+    .arrow-svg path { fill: rgba(255,255,255,0.9); }
     .disk.inactive .arrow-svg path { fill: rgba(255,255,255,0.5); }
     .disk.done .arrow-svg path { fill: rgba(255,255,255,0.4); }
-
     .circle-label { font-size: 11px; color: #aaa; height: 14px; }
-
-    /* Round counter */
-    .round-info {
-      font-size: 13px;
-      color: #999;
-      font-family: 'DM Mono', monospace;
-    }
-
-    /* End screen */
-    .end-screen {
-      font-family: 'Fraunces', serif; text-align: center; padding: 40px 20px;
-    }
-    .end-screen h1 { font-size: 32px; font-weight: 300; margin-bottom: 24px; color: #2a2a2a; }
-    .end-screen .stat {
-      font-family: 'DM Mono', monospace; font-size: 14px;
-      color: #777; margin-bottom: 8px;
-    }
-    .end-screen .stat strong { color: #2a2a2a; font-weight: 400; }
-
-    /* Pulse animation for active disk */
+    .round-info { font-size: 13px; color: #999; font-family: 'DM Mono', monospace; }
     @keyframes pulse {
       0%, 100% { box-shadow: 0 0 0 4px rgba(59,125,216,0.25), 0 4px 16px rgba(59,125,216,0.3); }
       50% { box-shadow: 0 0 0 6px rgba(59,125,216,0.15), 0 4px 20px rgba(59,125,216,0.25); }
     }
     .disk.active { animation: pulse 2s ease-in-out infinite; }
+
+    .end-screen {
+      font-family: 'Fraunces', serif; text-align: center; padding: 40px 20px;
+      max-width: 600px; margin: 0 auto;
+    }
+    .end-screen h1 { font-size: 28px; font-weight: 300; margin-bottom: 20px; color: #2a2a2a; }
+    .end-screen p { font-size: 16px; color: #555; line-height: 1.7; margin-bottom: 12px; }
   </style>
 </head>
 <body></body>
@@ -158,202 +150,314 @@
 /* ═══════════════════════════════════════════════════════════════
    CONFIG
    ═══════════════════════════════════════════════════════════════ */
-
 var DATAPIPE_EXPERIMENT_ID = "9ba4v";
-var TASK_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+var TASK_DURATION_MS = 5 * 60 * 1000;
 
 /* ═══════════════════════════════════════════════════════════════
-   CUSTOM PLUGIN: circle-rotation (sequential version)
+   CIRCLE ROTATION PLUGIN (sequential)
    ═══════════════════════════════════════════════════════════════ */
-
 var jsPsychCircleRotation = (function () {
+  var TOTAL = 8, CLICKS = 4;
+  var ARROW = '<svg class="arrow-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>';
+  var info = { name: "circle-rotation", parameters: { task_duration_ms: { type: 1, default: 300000 } } };
 
-  var TOTAL_CIRCLES = 8;
-  var CLICKS_PER_CIRCLE = 4; // 4 × 90° = 360°
+  class P {
+    constructor(j) { this.jsPsych = j; }
+    trial(el, trial) {
+      var self = this, circles = [], activeIdx = 0, rounds = 0, clicks = 0, start = performance.now(), rts = [];
+      for (var i = 0; i < TOTAL; i++) circles.push(0);
 
-  // SVG arrow pointing up
-  var ARROW_SVG = '<svg class="arrow-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">' +
-    '<path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>' +
-    '</svg>';
+      function rem() { return Math.max(0, trial.task_duration_ms - (performance.now() - start)); }
+      function fmt(ms) { var s = Math.ceil(ms/1000), m = Math.floor(s/60); return m+":"+(s%60<10?"0":"")+(s%60); }
 
-  var info = {
-    name: "circle-rotation",
-    parameters: {
-      task_duration_ms: { type: 1, default: 300000 }
-    }
-  };
+      function draw() {
+        var r = rem(), pct = (r / trial.task_duration_ms) * 100;
+        var h = '<div class="task-wrapper">';
+        h += '<div style="display:flex;align-items:center;gap:12px;width:100%;max-width:360px"><div class="task-timer-bar"><div class="task-timer-fill" style="width:'+pct+'%"></div></div><span class="task-timer-text" id="t">'+fmt(r)+'</span></div>';
 
-  class CircleRotationPlugin {
-    constructor(jsPsych) { this.jsPsych = jsPsych; }
-
-    trial(display_element, trial) {
-      var self = this;
-
-      // State
-      var circles = [];
-      for (var i = 0; i < TOTAL_CIRCLES; i++) circles.push(0);
-      var activeIndex = 0;        // which disk is currently highlighted
-      var roundsCompleted = 0;
-      var totalClicks = 0;
-      var startTime = performance.now();
-      var roundTimestamps = [];
-
-      function elapsed() { return performance.now() - startTime; }
-      function remaining() { return Math.max(0, trial.task_duration_ms - elapsed()); }
-
-      function formatTime(ms) {
-        var s = Math.ceil(ms / 1000);
-        var m = Math.floor(s / 60);
-        var sec = s % 60;
-        return m + ":" + (sec < 10 ? "0" : "") + sec;
+        h += '<div class="circle-grid">';
+        for (var i = 0; i < TOTAL; i++) {
+          var c = circles[i], d = c >= CLICKS, a = i === activeIdx && !d, rot = c * 90;
+          h += '<div class="circle-cell"><button class="circle-btn'+(a?' active':'')+'" data-i="'+i+'"'+(a?'':' disabled')+'><div class="disk '+(d?'done':a?'active':'inactive')+'"><div style="transform:rotate('+rot+'deg);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1)">'+ARROW+'</div></div></button><span class="circle-label">'+(d?'✓':a?c+'/4':'')+'</span></div>';
+        }
+        h += '</div></div>';
+        el.innerHTML = h;
+        var b = el.querySelector('.circle-btn.active');
+        if (b) b.addEventListener('click', click);
       }
 
-      function render() {
-        var rem = remaining();
-        var pct = (rem / trial.task_duration_ms) * 100;
-
-        var html = '<div class="task-wrapper">';
-
-        // Timer
-        html += '<div style="display:flex; align-items:center; gap:12px; width:100%; max-width:360px;">' +
-          '<div class="task-timer-bar"><div class="task-timer-fill" style="width:' + pct + '%"></div></div>' +
-          '<span class="task-timer-text" id="crt-timer">' + formatTime(rem) + '</span></div>';
-
-        // Round counter
-        html += '<p class="round-info">раунд ' + (roundsCompleted + 1) + '</p>';
-
-        // Grid
-        html += '<div class="circle-grid">';
-        for (var i = 0; i < TOTAL_CIRCLES; i++) {
-          var clicks = circles[i];
-          var done = clicks >= CLICKS_PER_CIRCLE;
-          var isActive = (i === activeIndex && !done);
-          var rotation = clicks * 90;
-
-          var diskClass = done ? 'disk done' : (isActive ? 'disk active' : 'disk inactive');
-          var btnClass = isActive ? 'circle-btn active' : 'circle-btn';
-
-          html += '<div class="circle-cell">' +
-            '<button class="' + btnClass + '" data-index="' + i + '"' +
-            (!isActive ? ' disabled' : '') + '>' +
-            '<div class="' + diskClass + '">' +
-            '<div style="transform:rotate(' + rotation + 'deg); transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1)">' +
-            ARROW_SVG + '</div>' +
-            '</div></button>' +
-            '<span class="circle-label">' + (done ? '✓' : isActive ? (clicks + '/4') : '') + '</span>' +
-            '</div>';
-        }
-        html += '</div>';
-
-        html += '</div>';
-        display_element.innerHTML = html;
-
-        // Attach click handler to active button
-        var activeBtn = display_element.querySelector('.circle-btn.active');
-        if (activeBtn) {
-          activeBtn.addEventListener('click', handleClick);
-        }
-      }
-
-      function handleClick(e) {
-        var idx = parseInt(e.currentTarget.getAttribute('data-index'));
-        if (idx !== activeIndex) return;
-
-        circles[idx]++;
-        totalClicks++;
-
-        // Check if this disk is done
-        if (circles[idx] >= CLICKS_PER_CIRCLE) {
-          // Move to next disk
-          activeIndex++;
-
-          // Check if all 8 are done → round complete
-          if (activeIndex >= TOTAL_CIRCLES) {
-            roundsCompleted++;
-            roundTimestamps.push(Math.round(elapsed()));
-
-            // Reset for next round
-            for (var i = 0; i < TOTAL_CIRCLES; i++) circles[i] = 0;
-            activeIndex = 0;
+      function click(e) {
+        var i = parseInt(e.currentTarget.getAttribute('data-i'));
+        if (i !== activeIdx) return;
+        circles[i]++; clicks++;
+        if (circles[i] >= CLICKS) {
+          activeIdx++;
+          if (activeIdx >= TOTAL) {
+            rounds++; rts.push(Math.round(performance.now()-start));
+            for (var j = 0; j < TOTAL; j++) circles[j] = 0;
+            activeIdx = 0;
           }
         }
-
-        render();
+        draw();
       }
 
-      function endTask() {
-        clearInterval(timerInterval);
-
-        var totalTime = Math.round(elapsed());
-        self.jsPsych.finishTrial({
-          rounds_completed: roundsCompleted,
-          total_clicks: totalClicks,
-          total_time_ms: totalTime,
-          total_time_formatted: formatTime(0), // shows 0:00 since time ran out
-          actual_duration_formatted: formatTime(totalTime * 1000).replace(/^0:/, ''),
-          round_timestamps_ms: JSON.stringify(roundTimestamps)
-        });
+      function end() {
+        clearInterval(iv);
+        self.jsPsych.finishTrial({ rounds_completed: rounds, total_clicks: clicks, total_time_ms: Math.round(performance.now()-start), round_timestamps_ms: JSON.stringify(rts) });
       }
 
-      // Update timer every second
-      var timerInterval = setInterval(function () {
-        var rem = remaining();
-        var el = display_element.querySelector('#crt-timer');
-        if (el) el.textContent = formatTime(rem);
-
-        // Update timer bar
-        var bar = display_element.querySelector('.task-timer-fill');
-        if (bar) bar.style.width = ((rem / trial.task_duration_ms) * 100) + '%';
-
-        if (rem <= 0) {
-          endTask();
-        }
+      var iv = setInterval(function() {
+        var r = rem(), te = el.querySelector('#t'), tb = el.querySelector('.task-timer-fill');
+        if (te) te.textContent = fmt(r);
+        if (tb) tb.style.width = ((r/trial.task_duration_ms)*100)+'%';
+        if (r <= 0) end();
       }, 1000);
-
-      // Hard stop at exact duration
-      setTimeout(function () {
-        endTask();
-      }, trial.task_duration_ms + 500);
-
-      render();
+      setTimeout(function(){ end(); }, trial.task_duration_ms + 500);
+      draw();
     }
   }
-
-  CircleRotationPlugin.info = info;
-  return CircleRotationPlugin;
+  P.info = info;
+  return P;
 })();
+
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+var L5 = ["1 – Почти или совсем нет", "2 – Немного", "3 – Умеренно", "4 – Значительно", "5 – Очень сильно"];
+var L7 = ["1 – полностью не согласен", "2 – не согласен", "3 – скорее не согласен", "4 – нечто среднее", "5 – скорее согласен", "6 – согласен", "7 – полностью согласен"];
+var L5sc = ["1 – совершенно не согласен", "2 – скорее не согласен", "3 – нечто среднее", "4 – скорее согласен", "5 – совершенно согласен"];
+
+function likertQ(prompt, labels, name) {
+  return { prompt: prompt, labels: labels, required: true, name: name };
+}
 
 
 /* ═══════════════════════════════════════════════════════════════
    EXPERIMENT TIMELINE
    ═══════════════════════════════════════════════════════════════ */
-
 var jsPsych = initJsPsych();
 var subject_id = jsPsych.randomization.randomID(10);
 var filename = subject_id + ".csv";
 
-/* ── 1. Instructions ── */
-var welcome = {
+
+/* ── PAGE 1: Consent ── */
+var page1 = {
   type: jsPsychHtmlButtonResponse,
   stimulus:
-    '<div class="instructions">' +
-    '<h1>Задание на внимание</h1>' +
-    '<p>Перед вами восемь синих дисков со стрелками.</p>' +
-    '<p>Кликайте на подсвеченный диск. Каждый клик поворачивает стрелку на четверть оборота. ' +
-    'После полного оборота (4 клика) подсветка переходит к следующему диску.</p>' +
-    '<p>Работайте как можно быстрее. Задание длится 5 минут.</p>' +
-    '<p class="subtle">Нажмите «Начать», когда будете готовы.</p>' +
+    '<div class="page">' +
+    '<h1>Уважаемый участник!</h1>' +
+    '<p>Спасибо за Ваш вклад в наше исследование и интерес к нему! Исследование посвящено связи между определенными личностными особенностями и выполнением задач на внимание.</p>' +
+    '<p><strong>Что вас ждёт:</strong></p>' +
+    '<ul><li>Краткий опросник (около 2 минут).</li><li>Компьютерное задание на внимание (5 минут).</li><li>Ещё несколько небольших опросников (7–8 минут).</li></ul>' +
+    '<p><strong>Важные условия:</strong></p>' +
+    '<p>Пожалуйста, выделите 15–20 минут непрерывного времени, чтобы пройти исследование без перерыва.</p>' +
+    '<p>Перед началом отключите уведомления на телефоне и компьютере. Выполняйте задание в тихом месте, где Вас никто не побеспокоит. Все ответы анонимны и будут использоваться только в обобщённом виде.</p>' +
+    '<p>Вы можете в любой момент прервать участие, закрыв страницу.</p>' +
+    '<p>Если Вам меньше 18 лет, у Вас есть диагностированный СДВГ, неврологические или психиатрические заболевания, пожалуйста, воздержитесь от участия.</p>' +
+    '<p>После завершения исследования Вы увидите краткую информацию о его целях.</p>' +
+    '<p>Если Вас заинтересуют результаты исследования, Вы можете оставить в конце адрес своей электронной почты — мы проинформируем Вас о полученных результатах после завершения исследования.</p>' +
+    '<p class="note">Нажмите «Далее», если Вы согласны принять участие.</p>' +
     '</div>',
-  choices: ['Начать']
+  choices: ['Далее'],
+  data: { trial_label: 'consent' }
 };
 
-/* ── 2. Task (5 min) ── */
-var circleTask = {
+
+/* ── PAGE 2: Demographics ── */
+var page2 = {
+  type: jsPsychSurveyHtmlForm,
+  preamble: '<div class="page"><h1>Демографические данные</h1></div>',
+  html:
+    '<div style="max-width:500px;margin:0 auto;font-family:Fraunces,serif;font-size:16px;">' +
+    '<p style="margin-bottom:8px;"><strong>Укажите Ваш пол:</strong></p>' +
+    '<label style="display:block;margin:4px 0;"><input type="radio" name="gender" value="female" required> Женщина</label>' +
+    '<label style="display:block;margin:4px 0;"><input type="radio" name="gender" value="male"> Мужчина</label>' +
+    '<label style="display:block;margin:4px 0;"><input type="radio" name="gender" value="prefer_not"> Предпочитаю не указывать</label>' +
+    '<p style="margin-top:20px;margin-bottom:8px;"><strong>Укажите Ваш возраст:</strong></p>' +
+    '<input type="number" name="age" min="18" max="99" required placeholder="Возраст">' +
+    '</div>',
+  button_label: 'Далее',
+  data: { trial_label: 'demographics' }
+};
+
+
+/* ── PAGE 3: PANAS PRE ── */
+var panas_pre_items = [
+  "увлеченный", "подавленный", "радостный", "расстроенный", "полный сил",
+  "виноватый", "испуганный", "злой", "заинтересованный", "уверенный",
+  "раздраженный", "сосредоточенный", "стыдящийся", "вдохновленный", "нервный",
+  "решительный", "внимательный", "беспокойный", "бодрый", "тревожный", "скучающий"
+];
+
+var page3 = {
+  type: jsPsychSurveyLikert,
+  preamble: '<div class="page"><p>Этот опросник состоит из перечня прилагательных, которые описывают различные чувства и эмоции. Прочитайте каждое прилагательное и отметьте, в какой мере Вы чувствуете себя так <strong>сейчас</strong> (в настоящий момент).</p></div>',
+  questions: panas_pre_items.map(function(item, i) {
+    return likertQ(item, L5, 'panas_pre_' + (i+1));
+  }),
+  button_label: 'Далее',
+  data: { trial_label: 'panas_pre' }
+};
+
+
+/* ── PAGE 4: Task instructions ── */
+var page4 = {
+  type: jsPsychHtmlButtonResponse,
+  stimulus:
+    '<div class="page">' +
+    '<h1>Инструкция к заданию</h1>' +
+    '<p>На экране вы увидите восемь синих дисков (кругов), расположенных в два ряда по четыре. На каждом диске есть стрелка, указывающая от центра к краю.</p>' +
+    '<p>В начале задания первый диск будет подсвечен.</p>' +
+    '<p>Ваша задача — кликать на подсвеченный диск как можно быстрее. Каждый клик поворачивает стрелку на четверть оборота по часовой стрелке.</p>' +
+    '<p>Когда стрелка на текущем диске совершит полный оборот (после четырёх кликов), подсветка автоматически перейдёт к следующему диску. Продолжайте кликать на подсвеченные диски, пока задание не завершится.</p>' +
+    '<p>Пожалуйста, работайте, не отвлекаясь. Задание займёт 5 минут.</p>' +
+    '<p class="note">Нажмите «Далее», чтобы перейти к заданию.</p>' +
+    '</div>',
+  choices: ['Далее'],
+  data: { trial_label: 'task_instructions' }
+};
+
+
+/* ── PAGE 5: Circle task ── */
+var page5 = {
   type: jsPsychCircleRotation,
-  task_duration_ms: TASK_DURATION_MS
+  task_duration_ms: TASK_DURATION_MS,
+  data: { trial_label: 'circle_task' }
 };
 
-/* ── 3. Save data to OSF via DataPipe ── */
+
+/* ── PAGE 6: PANAS POST ── */
+var panas_post_items = [
+  "скучающий", "виноватый", "внимательный", "беспокойный", "уверенный",
+  "бодрый", "подавленный", "стыдящийся", "раздраженный", "решительный",
+  "расстроенный", "увлеченный", "злой", "вдохновленный", "сосредоточенный",
+  "испуганный", "заинтересованный", "тревожный", "нервный", "радостный", "полный сил"
+];
+
+var page6 = {
+  type: jsPsychSurveyLikert,
+  preamble: '<div class="page"><p>Прочитайте, пожалуйста, каждое прилагательное и отметьте, в какой мере Вы чувствуете себя <strong>сейчас, ПОСЛЕ ВЫПОЛНЕНИЯ ЗАДАНИЯ</strong>.</p></div>',
+  questions: panas_post_items.map(function(item, i) {
+    return likertQ(item, L5, 'panas_post_' + (i+1));
+  }),
+  button_label: 'Далее',
+  data: { trial_label: 'panas_post' }
+};
+
+
+/* ── PAGE 7: Boredom Proneness (8 items, 7-point) ── */
+var boredom_items = [
+  "Я часто бываю растерянным и не знаю, что делать.",
+  "Мне сложно себя чем-нибудь развлечь.",
+  "Многое из того, что мне приходится делать, однообразно и уныло.",
+  "Мне нужен более серьезный стимул для каких-либо действий, чем большинству людей.",
+  "Мне не нравится большинство вещей, которыми я занимаюсь.",
+  "В большинстве ситуаций мне трудно обнаружить что-нибудь интересное для себя.",
+  "Большую часть времени я просто сижу без дела.",
+  "Если я не занят чем-нибудь захватывающим, даже опасным, то чувствую себя неживым."
+];
+
+var page7 = {
+  type: jsPsychSurveyLikert,
+  preamble: '<div class="page"><p>Оцените, пожалуйста, каждое утверждение по шкале от 1 («полностью не согласен») до 7 («полностью согласен»).</p></div>',
+  questions: boredom_items.map(function(item, i) {
+    return likertQ(item, L7, 'boredom_' + (i+1));
+  }),
+  button_label: 'Далее',
+  data: { trial_label: 'boredom_proneness' }
+};
+
+
+/* ── PAGE 8: Sense of Agency (13 items + 1 attention check, 7-point) ── */
+var agency_items = [
+  "Я полностью контролирую все, что я делаю.",
+  "Я всего лишь инструмент в чьих-то руках.",
+  "Мои действия просто случаются без всякого намерения с моей стороны.",
+  "Я — автор своих поступков.",
+  "Последствия моих действий логически не связаны с самими моими действиями.",
+  "Мои движения автоматические: мое тело просто делает их и все.",
+  "Последствия моих поступков обычно удивляют меня.",
+  "Все, что я делаю, я делаю по своей свободной воле.",
+  "Решение, как и когда действовать, принимаю я.",
+  "На самом деле я ничего не делаю по своей воле.",
+  "Что бы я ни делал, я чувствую себя запрограммированным роботом.",
+  "Я планирую свое поведение от начала и до конца.",
+  "Я несу полную ответственность за все результаты своих действий.",
+  "Если Вы внимательно прочитали этот вопрос, в ответе выберите вариант 4 – нечто среднее."
+];
+
+var page8 = {
+  type: jsPsychSurveyLikert,
+  preamble: '<div class="page"><p>Пожалуйста, оцените свое согласие или несогласие с каждым утверждением по шкале от 1 («полностью не согласен») до 7 («полностью согласен»).</p></div>',
+  questions: agency_items.map(function(item, i) {
+    return likertQ(item, L7, 'agency_' + (i+1));
+  }),
+  button_label: 'Далее',
+  data: { trial_label: 'sense_of_agency' }
+};
+
+
+/* ── PAGE 9: Self-Control (13 items, 5-point) ── */
+var selfcontrol_items = [
+  "Мне хорошо удается сопротивляться соблазнам.",
+  "Я с трудом отказываюсь от дурных привычек.",
+  "Я ленивый (ая).",
+  "Бывает, что я говорю неуместные вещи.",
+  "Выбирая между приятным и полезным, я выбираю приятное.",
+  "Я умею отказываться от того, что для меня вредно.",
+  "Мне бы хотелось лучше контролировать себя.",
+  "Я произвожу впечатление очень дисциплинированного человека.",
+  "Поговорка «семь раз отмерь, один раз отрежь» – не про меня.",
+  "Иногда я не могу доделать работу, потому что отвлекаюсь на более приятные дела.",
+  "Мне бывает трудно сконцентрироваться.",
+  "Мне удается ставить и достигать долгосрочные цели.",
+  "Иногда я делаю что-то, хотя и знаю, что этого делать не стоит."
+];
+
+var page9 = {
+  type: jsPsychSurveyLikert,
+  preamble: '<div class="page"><p>В ответах под каждым утверждением, пожалуйста, отметьте, насколько верно каждый из пунктов описывает Вас (привычное для Вас состояние).</p></div>',
+  questions: selfcontrol_items.map(function(item, i) {
+    return likertQ(item, L5sc, 'selfcontrol_' + (i+1));
+  }),
+  button_label: 'Далее',
+  data: { trial_label: 'self_control' }
+};
+
+
+/* ── PAGE 10: Technical questions ── */
+var page10 = {
+  type: jsPsychSurveyMultiChoice,
+  preamble: '<div class="page"><p>Пожалуйста, ответьте на несколько заключительных вопросов о том, как Вы проходили исследование.</p></div>',
+  questions: [
+    {
+      prompt: "Были ли у Вас технические проблемы при прохождении (зависания, ошибки, медленная загрузка)?",
+      name: "tech_issues",
+      options: [
+        "Да, были серьёзные технические проблемы.",
+        "Да, но незначительные, было достаточно комфортно проходить исследование.",
+        "Нет, технических проблем не было."
+      ],
+      required: true
+    },
+    {
+      prompt: "Были ли у вас отвлекающие факторы во время выполнения задания (шум, сообщения, звонки, другие люди)?",
+      name: "distractions",
+      options: [
+        "Да, серьёзно отвлекали",
+        "Да, но незначительно",
+        "Нет, ничего не отвлекало"
+      ],
+      required: true
+    }
+  ],
+  button_label: 'Далее',
+  data: { trial_label: 'technical_questions' }
+};
+
+
+/* ── SAVE DATA ── */
 var save_data = {
   type: jsPsychPipe,
   action: "save",
@@ -362,23 +466,64 @@ var save_data = {
   data_string: function () { return jsPsych.data.get().csv(); }
 };
 
-/* ── 4. End screen ── */
-var debrief = {
-  type: jsPsychHtmlButtonResponse,
-  stimulus: function () {
-    var data = jsPsych.data.get().filter({ trial_type: 'circle-rotation' }).values()[0];
-    return '<div class="end-screen">' +
-      '<h1>Время вышло!</h1>' +
-      '<p class="stat">Раундов завершено: <strong>' + data.rounds_completed + '</strong></p>' +
-      '<p class="stat">Всего кликов: <strong>' + data.total_clicks + '</strong></p>' +
-      '<p class="stat" style="margin-top:24px; color:#bbb;">Спасибо за участие.</p>' +
-      '</div>';
-  },
-  choices: ['Закрыть']
+
+/* ── PAGE 11: Debrief + optional email ── */
+var page11_debrief = {
+  type: jsPsychSurveyText,
+  preamble:
+    '<div class="end-screen">' +
+    '<h1>Спасибо за участие в исследовании!</h1>' +
+    '<p>На самом деле мы изучали, как разные люди переживают скуку и как это связано с их личностными особенностями (предрасположенностью к скуке и чувством агентности, то есть контроля над своими действиями). Задание было специально подобрано как монотонное, чтобы вызвать эмоцию скуки.</p>' +
+    '<p>Если Вы хотите получить информацию о результатах данного исследования, оставьте, пожалуйста, адрес Вашей электронной почты ниже.</p>' +
+    '<p>Все Ваши ответы анонимны и будут использоваться только в обобщённом виде. Если у Вас есть вопросы, Вы можете связаться со мной по адресу: deniolly@gmail.com.</p>' +
+    '<p><strong>Ещё раз спасибо!</strong></p>' +
+    '</div>',
+  questions: [
+    { prompt: "Ваш адрес электронной почты (необязательно):", name: "email", required: false, placeholder: "email@example.com" }
+  ],
+  button_label: 'Завершить',
+  data: { trial_label: 'debrief_email' }
 };
 
-/* ── Run ── */
-jsPsych.run([welcome, circleTask, save_data, debrief]);
+
+/* ── Save email separately (after debrief, so debrief data is included) ── */
+var save_final = {
+  type: jsPsychPipe,
+  action: "save",
+  experiment_id: DATAPIPE_EXPERIMENT_ID,
+  filename: subject_id + "_final.csv",
+  data_string: function () { return jsPsych.data.get().csv(); }
+};
+
+
+/* ── Final "done" screen ── */
+var done = {
+  type: jsPsychHtmlButtonResponse,
+  stimulus: '<div class="end-screen"><h1>Исследование завершено</h1><p>Вы можете закрыть эту страницу.</p></div>',
+  choices: ['Закрыть'],
+  data: { trial_label: 'done' }
+};
+
+
+/* ═══════════════════════════════════════════════════════════════
+   RUN
+   ═══════════════════════════════════════════════════════════════ */
+jsPsych.run([
+  page1,       // consent
+  page2,       // demographics
+  page3,       // PANAS pre
+  page4,       // task instructions
+  page5,       // circle task (5 min)
+  page6,       // PANAS post
+  page7,       // boredom proneness
+  page8,       // sense of agency
+  page9,       // self-control
+  page10,      // technical questions
+  save_data,   // save to OSF (before debrief, so core data is safe)
+  page11_debrief, // debrief + email
+  save_final,  // save again including email
+  done         // final screen
+]);
 
 </script>
 </html>
