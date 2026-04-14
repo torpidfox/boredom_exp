@@ -24,6 +24,10 @@
     body { background: #fafafa; touch-action: manipulation; }
     * { touch-action: manipulation; }
 
+    .jspsych-display-element {
+      overflow-y: auto !important;
+    }
+
     .jspsych-content {
       font-family: 'DM Mono', monospace;
       max-width: 700px;
@@ -72,6 +76,8 @@
       align-items: center !important;
       gap: 8px !important;
       cursor: pointer;
+      min-height: 24px !important; /* Гарантируем высоту строки */
+      line-height: 1.5 !important;
     }
     .jspsych-survey-likert-opt-label input[type="radio"] {
       margin: 0 !important;
